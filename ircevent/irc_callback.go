@@ -384,9 +384,7 @@ func (irc *Connection) runDisconnectCallbacks() {
 // HandleMessage handles an IRC line using the available handlers. This can be
 // used in a batch or labeled-response callback to process an individual line.
 func (irc *Connection) HandleMessage(event ircmsg.Message) {
-	if irc.EnableCTCP {
-		eventRewriteCTCP(&event)
-	}
+	eventRewriteCTCP(&event)
 
 	callbackPairs := irc.getCallbacks(event.Command)
 
