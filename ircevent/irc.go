@@ -54,7 +54,8 @@ var (
 	ClientDisconnected = errors.New("Could not send because client is disconnected")
 	ServerTimedOut     = errors.New("Server did not respond in time")
 	ServerDisconnected = errors.New("Disconnected by server")
-	SASLFailed         = errors.New("SASL setup timed out. Does the server support SASL?")
+	SASLFailed         = errors.New("setup timed out")
+	SASLError          = errors.New("sasl failed")
 
 	CapabilityNotNegotiated = errors.New("The IRCv3 capability required for this was not negotiated")
 	NoLabeledResponse       = errors.New("The server failed to send a labeled response to the command")
@@ -78,6 +79,10 @@ func (irc *Connection) getError() error {
 	irc.stateMutex.Lock()
 	defer irc.stateMutex.Unlock()
 	return irc.lastError
+}
+
+func (irc *Connection) InternalGetError() error {
+	return irc.getError()
 }
 
 // Send a keepalive PING in our timestamp-based format
@@ -321,6 +326,16 @@ func (irc *Connection) waitForStop() {
 	}
 
 	irc.expireBatches(true)
+}
+
+func (irc *Connection) DangerousInternalWaitForStop() {
+	irc.waitForStop()
+}
+
+func (irc *Connection) DangerousInternalKill() {
+	if sock := irc.socket; sock != nil {
+		sock.Close()
+	}
 }
 
 // Quit the current connection and disconnect from the server
@@ -798,7 +813,7 @@ func (irc *Connection) negotiateCaps() error {
 
 	saslError := func(err error) error {
 		if !irc.SASLOptional {
-			return err
+			return fmt.Errorf("%w: %w", SASLError, err)
 		} else {
 			return nil
 		}
