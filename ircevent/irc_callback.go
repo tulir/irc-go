@@ -137,6 +137,21 @@ func (irc *Connection) AddBatchCallback(callback func(*Batch) bool) CallbackID {
 	return CallbackID{command: "BATCH", id: idNum}
 }
 
+func (irc *Connection) AddGlobalCallback(callback func(ircmsg.Message) bool) CallbackID {
+	irc.eventsMutex.Lock()
+	defer irc.eventsMutex.Unlock()
+	idNum := irc.callbackCounter
+	irc.callbackCounter++
+	ngc := make([]globalCallbackPair, len(irc.globalCallbacks)+1)
+	copy(ngc, irc.globalCallbacks)
+	ngc[len(ngc)-1] = globalCallbackPair{
+		id:       idNum,
+		callback: callback,
+	}
+	irc.globalCallbacks = ngc
+	return CallbackID{command: "*", id: idNum}
+}
+
 func (irc *Connection) removeBatchCallbackNoMutex(idNum uint64) {
 	current := irc.batchCallbacks
 	if len(current) == 0 {
@@ -176,6 +191,12 @@ func (irc *Connection) getCallbacks(code string) (result []callbackPair) {
 	irc.eventsMutex.Lock()
 	defer irc.eventsMutex.Unlock()
 	return irc.events[code]
+}
+
+func (irc *Connection) getGlobalCallbacks() []globalCallbackPair {
+	irc.eventsMutex.Lock()
+	defer irc.eventsMutex.Unlock()
+	return irc.globalCallbacks
 }
 
 func (irc *Connection) getBatchCallbacks() (result []batchCallbackPair) {
@@ -385,6 +406,12 @@ func (irc *Connection) runDisconnectCallbacks() {
 // used in a batch or labeled-response callback to process an individual line.
 func (irc *Connection) HandleMessage(event ircmsg.Message) {
 	eventRewriteCTCP(&event)
+
+	for _, cb := range irc.getGlobalCallbacks() {
+		if cb.callback(event) {
+			return
+		}
+	}
 
 	callbackPairs := irc.getCallbacks(event.Command)
 

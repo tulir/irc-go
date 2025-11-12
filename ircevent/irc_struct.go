@@ -33,6 +33,13 @@ type batchCallbackPair struct {
 	callback BatchCallback
 }
 
+type GlobalCallback func(ircmsg.Message) bool
+
+type globalCallbackPair struct {
+	id       uint64
+	callback GlobalCallback
+}
+
 type LabelCallback func(*Batch)
 
 type capResult struct {
@@ -108,6 +115,7 @@ type Connection struct {
 	// did we initialize the callbacks needed for the library itself?
 	batchCallbacks   []batchCallbackPair
 	hasBaseCallbacks bool
+	globalCallbacks  []globalCallbackPair
 
 	batchMutex     sync.Mutex
 	batches        map[string]batchInProgress
