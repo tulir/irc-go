@@ -528,6 +528,9 @@ func (irc *Connection) PreferredNick() string {
 func (irc *Connection) setCurrentNick(nick string) {
 	irc.stateMutex.Lock()
 	defer irc.stateMutex.Unlock()
+	if irc.OnNickChange != nil {
+		irc.OnNickChange(irc.currentNick, nick)
+	}
 	irc.currentNick = nick
 }
 

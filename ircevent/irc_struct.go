@@ -76,6 +76,8 @@ type Connection struct {
 	// set this to configure how the connection is made (e.g. via a proxy server):
 	DialContext func(ctx context.Context, network, addr string) (net.Conn, error)
 
+	OnNickChange func(oldNick, newNick string)
+
 	// networking and synchronization
 	stateMutex sync.Mutex     // innermost mutex: don't block while holding this
 	end        chan empty     // closing this causes the goroutines to exit
