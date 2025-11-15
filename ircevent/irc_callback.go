@@ -351,6 +351,13 @@ func (irc *Connection) runCallbacks(msg ircmsg.Message) {
 		defer irc.handleCallbackPanic()
 	}
 
+	nuh, _ := msg.NUH()
+	irc.stateMutex.Lock()
+	if nuh.User != "" && nuh.Host != "" && nuh.Name == irc.currentNick {
+		irc.ownUserHostLen = len(nuh.User) + len(nuh.Host)
+	}
+	irc.stateMutex.Unlock()
+
 	// handle batch start or end
 	if irc.batchNegotiated() {
 		if msg.Command == "BATCH" {

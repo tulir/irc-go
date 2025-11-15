@@ -124,6 +124,8 @@ type Connection struct {
 	labelCallbacks map[int64]pendingLabel
 	labelCounter   int64
 
+	ownUserHostLen int
+
 	Log *log.Logger
 }
 

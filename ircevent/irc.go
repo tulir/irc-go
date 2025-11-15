@@ -728,6 +728,7 @@ func (irc *Connection) Connect() (err error) {
 	irc.isupport = nil
 	irc.capsAcked = make(map[string]string)
 	irc.capsAdvertised = nil
+	irc.ownUserHostLen = len(irc.User) + 64 // worst-case estimate
 	irc.stateMutex.Unlock()
 	irc.batchMutex.Lock()
 	irc.batches = make(map[string]batchInProgress)
