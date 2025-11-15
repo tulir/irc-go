@@ -121,6 +121,13 @@ func (irc *Connection) readLoop() {
 		}
 	}()
 
+	if irc.PutIdent != nil {
+		localAddr := irc.socket.LocalAddr()
+		remoteAddr := irc.socket.RemoteAddr()
+		removeIdent := irc.PutIdent(localAddr.String(), remoteAddr.String(), irc.User)
+		defer removeIdent()
+	}
+
 	msgChan := make(chan string)
 	errChan := make(chan error)
 	go readMsgLoop(irc.socket, irc.MaxLineLen, msgChan, errChan, irc.end)

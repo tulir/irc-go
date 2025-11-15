@@ -77,6 +77,7 @@ type Connection struct {
 	DialContext func(ctx context.Context, network, addr string) (net.Conn, error)
 
 	OnNickChange func(oldNick, newNick string)
+	PutIdent     func(localAddr, remoteAddr, username string) func()
 
 	// networking and synchronization
 	stateMutex sync.Mutex     // innermost mutex: don't block while holding this
