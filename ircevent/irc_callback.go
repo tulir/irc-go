@@ -491,6 +491,9 @@ func (irc *Connection) handleRplWelcome(e ircmsg.Message) {
 
 	// set the nickname we actually received from the server
 	if len(e.Params) > 0 {
+		if irc.OnNickChange != nil {
+			irc.OnNickChange(irc.currentNick, e.Params[0])
+		}
 		irc.currentNick = e.Params[0]
 	}
 }
